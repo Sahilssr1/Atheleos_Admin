@@ -1,122 +1,120 @@
-// Inline SVG charts — no external chart library. Same data in, richer
-// presentation out: gridlines, gradient area fills, native tooltips.
+// Charts built on Recharts — smooth curves, minimal axes, clean tooltips.
+// Same props as the previous hand-rolled SVG charts, so every page call-site
+// is unchanged; only the rendering is modernized.
 import { useId } from 'react';
+import {
+  Area, AreaChart, Bar, BarChart as RBarChart, CartesianGrid, Cell, LabelList,
+  Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
+} from 'recharts';
 
 export interface SeriesPoint { date: string; count: number }
 
 const DONUT_COLORS = ['#6c5ce7', '#4f8ff7', '#f5a623', '#2fbf71', '#e5536b', '#962fbf', '#38b6c9', '#8a8fa3'];
+const AXIS_TICK = { fill: '#8a8fa3', fontSize: 11.5 } as const;
 
-export function LineChart({ data, color = '#6c5ce7', height = 160, label }: {
+function shortDate(d: string): string {
+  const dt = new Date(d);
+  return Number.isNaN(dt.getTime())
+    ? d
+    : dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function ChartTip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  const p = payload[0];
+  const raw = label != null && label !== '' ? String(label) : (p.name != null ? String(p.name) : '');
+  const title = /^\d{4}-\d{2}-\d{2}/.test(raw) ? shortDate(raw) : raw;
+  return (
+    <div className="chart-tooltip">
+      {title && <div className="chart-tooltip-label">{title}</div>}
+      <div className="chart-tooltip-value">{Number(p.value).toLocaleString()}</div>
+    </div>
+  );
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+export function LineChart({ data, color = '#6c5ce7', height = 180, label }: {
   data: SeriesPoint[]; color?: string; height?: number; label?: string;
 }) {
   const gid = useId().replace(/[^a-zA-Z0-9]/g, '');
   if (data.length === 0) return <div className="state-box"><div>No data in this range</div></div>;
-  const w = 640;
-  const h = height;
-  const padX = 10;
-  const padTop = 12;
-  const padBottom = 10;
-  const max = Math.max(1, ...data.map((d) => d.count));
-  const stepX = data.length > 1 ? (w - padX * 2) / (data.length - 1) : 0;
-  const y = (v: number) => padTop + (1 - v / max) * (h - padTop - padBottom);
-  const pts = data.map((d, i) => [padX + i * stepX, y(d.count)] as const);
-  const line = pts.map((p) => p.join(',')).join(' ');
-  const area = `${padX},${h - padBottom} ${line} ${padX + (data.length - 1) * stepX},${h - padBottom}`;
-  const gridVals = [0.25, 0.5, 0.75, 1];
-  const last = pts[pts.length - 1];
   return (
-    <div className="chart-box">
-      <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} role="img" aria-label={label ?? 'Line chart'} preserveAspectRatio="none">
-        <defs>
-          <linearGradient id={`lg-${gid}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.28} />
-            <stop offset="100%" stopColor={color} stopOpacity={0.02} />
-          </linearGradient>
-        </defs>
-        {gridVals.map((f) => (
-          <line key={f} x1={padX} x2={w - padX} y1={y(max * f)} y2={y(max * f)}
-            stroke="currentColor" strokeOpacity={0.08} strokeDasharray="3 5" />
-        ))}
-        <polygon points={area} fill={`url(#lg-${gid})`} />
-        <polyline points={line} fill="none" stroke={color} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
-        {pts.map((p, i) => (
-          <circle key={i} cx={p[0]} cy={p[1]} r={2.4} fill={color} opacity={0.55}>
-            <title>{`${data[i].date}: ${data[i].count.toLocaleString()}`}</title>
-          </circle>
-        ))}
-        {last && <circle cx={last[0]} cy={last[1]} r={4} fill={color} stroke="var(--bg-elev)" strokeWidth={2} />}
-      </svg>
-      <div className="row between small faint">
-        <span>{data[0]?.date}</span>
-        <span>peak {max.toLocaleString()}</span>
-        <span>{data[data.length - 1]?.date}</span>
-      </div>
+    <div className="chart-box" role="img" aria-label={label ?? 'Line chart'}>
+      <ResponsiveContainer width="100%" height={height}>
+        <AreaChart data={data} margin={{ top: 8, right: 6, bottom: 0, left: -14 }}>
+          <defs>
+            <linearGradient id={`area-${gid}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.26} />
+              <stop offset="100%" stopColor={color} stopOpacity={0.01} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid vertical={false} stroke="#8a8fa3" strokeOpacity={0.14} />
+          <XAxis dataKey="date" tickFormatter={shortDate} tick={AXIS_TICK} axisLine={false} tickLine={false}
+            minTickGap={40} tickMargin={8} />
+          <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} allowDecimals={false} width={44} />
+          <Tooltip content={<ChartTip />} cursor={{ stroke: '#8a8fa3', strokeOpacity: 0.35, strokeDasharray: '4 4' }} />
+          <Area type="monotone" dataKey="count" stroke={color} strokeWidth={2.2}
+            fill={`url(#area-${gid})`} dot={false}
+            activeDot={{ r: 4, strokeWidth: 2, stroke: '#ffffff' }} />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 }
 
-export function BarChart({ data, color = '#6c5ce7', height = 160, label }: {
+export function BarChart({ data, color = '#6c5ce7', height = 180, label }: {
   data: { label: string; count: number }[]; color?: string; height?: number; label?: string;
 }) {
   if (data.length === 0) return <div className="state-box"><div>No data available</div></div>;
-  const max = Math.max(1, ...data.map((d) => d.count));
   return (
     <div className="chart-box" role="img" aria-label={label ?? 'Bar chart'}>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height, borderBottom: '1px solid var(--border-soft)' }}>
-        {data.map((d) => (
-          <div key={d.label} title={`${d.label}: ${d.count.toLocaleString()}`}
-            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minWidth: 0, height: '100%', justifyContent: 'flex-end' }}>
-            <span className="small" style={{ fontWeight: 650 }}>{d.count.toLocaleString()}</span>
-            <div style={{
-              width: '72%', maxWidth: 56, height: Math.max(4, (d.count / max) * (height - 46)),
-              background: `linear-gradient(180deg, ${color}, ${color}cc)`, borderRadius: '7px 7px 0 0',
-              transition: 'height .3s var(--ease)',
-            }} />
-            <span className="small faint" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%', paddingBottom: 6 }}>{d.label}</span>
-          </div>
-        ))}
-      </div>
+      <ResponsiveContainer width="100%" height={height}>
+        <RBarChart data={data} margin={{ top: 18, right: 6, bottom: 0, left: -14 }} barCategoryGap="28%">
+          <CartesianGrid vertical={false} stroke="#8a8fa3" strokeOpacity={0.14} />
+          <XAxis dataKey="label" tick={AXIS_TICK} axisLine={false} tickLine={false} tickMargin={8}
+            interval={0} angle={data.length > 6 ? -18 : 0} textAnchor={data.length > 6 ? 'end' : 'middle'}
+            height={data.length > 6 ? 44 : 30} />
+          <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} allowDecimals={false} width={44} />
+          <Tooltip content={<ChartTip />} cursor={{ fill: '#8a8fa3', fillOpacity: 0.08 }} />
+          <Bar dataKey="count" fill={color} radius={[7, 7, 0, 0]} maxBarSize={52}>
+            <LabelList dataKey="count" position="top" fill="#8a8fa3" fontSize={11.5} fontWeight={650}
+              formatter={(v: unknown) => Number(v).toLocaleString()} />
+          </Bar>
+        </RBarChart>
+      </ResponsiveContainer>
     </div>
   );
 }
 
-export function DonutChart({ data, size = 168, label }: {
+export function DonutChart({ data, size = 176, label }: {
   data: { label: string; count: number }[]; size?: number; label?: string;
 }) {
   const total = data.reduce((s, d) => s + d.count, 0);
   if (data.length === 0 || total === 0) return <div className="state-box"><div>No data available</div></div>;
-  const r = 62;
-  const c = 2 * Math.PI * r;
-  let acc = 0;
-  const segments = data.map((d, i) => {
-    const frac = d.count / total;
-    const seg = { ...d, frac, offset: acc, color: DONUT_COLORS[i % DONUT_COLORS.length] };
-    acc += frac;
-    return seg;
-  });
   return (
     <div className="donut-wrap" role="img" aria-label={label ?? 'Distribution chart'}>
-      <svg width={size} height={size} viewBox="0 0 160 160" style={{ flex: 'none' }}>
-        <circle cx="80" cy="80" r={r} fill="none" stroke="var(--bg-elev-2)" strokeWidth="17" />
-        {segments.map((s) => (
-          <circle key={s.label} cx="80" cy="80" r={r} fill="none" stroke={s.color} strokeWidth="17"
-            strokeDasharray={`${Math.max(0, s.frac * c - 2.5)} ${c}`}
-            strokeDashoffset={-s.offset * c}
-            transform="rotate(-90 80 80)" strokeLinecap="butt">
-            <title>{`${s.label}: ${s.count.toLocaleString()} (${Math.round(s.frac * 100)}%)`}</title>
-          </circle>
-        ))}
-        <text x="80" y="76" textAnchor="middle" fill="var(--text)" fontSize="21" fontWeight="750">
-          {total.toLocaleString()}
-        </text>
-        <text x="80" y="94" textAnchor="middle" fill="var(--text-faint)" fontSize="10.5">total</text>
-      </svg>
+      <div style={{ position: 'relative', width: size, height: size, flex: 'none' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Tooltip content={<ChartTip />} />
+            <Pie data={data} dataKey="count" nameKey="label" innerRadius="68%" outerRadius="92%"
+              paddingAngle={2.5} cornerRadius={5} strokeWidth={0} startAngle={90} endAngle={450}>
+              {data.map((d, i) => <Cell key={d.label} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />)}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="donut-center" aria-hidden>
+          <span className="donut-total">{total.toLocaleString()}</span>
+          <span className="donut-total-label">total</span>
+        </div>
+      </div>
       <div className="donut-legend">
-        {segments.map((s) => (
-          <span key={s.label} className="legend-item">
-            <span className="legend-swatch" style={{ background: s.color }} aria-hidden />
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.label}</span>
-            <span className="legend-count">{s.count.toLocaleString()}</span>
+        {data.map((d, i) => (
+          <span key={d.label} className="legend-item">
+            <span className="legend-swatch" style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }} aria-hidden />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.label}</span>
+            <span className="legend-count">{d.count.toLocaleString()}</span>
           </span>
         ))}
       </div>
