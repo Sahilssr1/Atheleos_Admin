@@ -9,7 +9,21 @@ export class FirebaseAuthService {
     if (this.cfg.DATA_MODE !== 'firestore' || !this.cfg.firebaseConfigured) return null;
     try {
       const admin = await import('firebase-admin');
-      if (!admin.apps.length) return null;
+      if (!admin.apps.length) {
+        const opts: Record<string, unknown> = { projectId: this.cfg.FIREBASE_PROJECT_ID };
+        if (this.cfg.FIREBASE_SERVICE_ACCOUNT_JSON) {
+          opts.credential = admin.credential.cert(JSON.parse(this.cfg.FIREBASE_SERVICE_ACCOUNT_JSON));
+        } else if (this.cfg.FIREBASE_CLIENT_EMAIL && this.cfg.FIREBASE_PRIVATE_KEY) {
+          opts.credential = admin.credential.cert({
+            projectId: this.cfg.FIREBASE_PROJECT_ID,
+            clientEmail: this.cfg.FIREBASE_CLIENT_EMAIL,
+            privateKey: this.cfg.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+          });
+        } else if (this.cfg.GOOGLE_APPLICATION_CREDENTIALS) {
+          opts.credential = admin.credential.applicationDefault();
+        }
+        admin.initializeApp(opts);
+      }
       return admin.auth();
     } catch { return null; }
   }

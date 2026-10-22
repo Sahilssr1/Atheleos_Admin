@@ -118,7 +118,7 @@ export default function UserDetail() {
       </div>
 
       {tab === 'content' && (
-        data.content.length === 0 ? <EmptyState icon="🖼️" title="No content" hint="This user has not published posts, clips, stories or events visible to the admin API." /> : (
+        (!data.content || data.content.length === 0) ? <EmptyState icon="🖼️" title="No content" hint="This user has not published posts, clips, stories or events visible to the admin API." /> : (
           <div className="media-grid">
             {data.content.map((c) => (
               <div key={`${c.type}-${c.id}`} className="media-card">
@@ -141,7 +141,7 @@ export default function UserDetail() {
       )}
 
       {tab === 'reports' && (
-        data.reports.length === 0 ? <EmptyState icon="🚩" title="No reports" hint="No reports target or were filed by this user." /> : (
+        (!data.reports || data.reports.length === 0) ? <EmptyState icon="🚩" title="No reports" hint="No reports target or were filed by this user." /> : (
           <Card flush><div className="table-wrap"><table className="table">
             <thead><tr><th>Reason</th><th>Target</th><th>Status</th><th>Filed</th></tr></thead>
             <tbody>{data.reports.map((r) => (
@@ -153,7 +153,7 @@ export default function UserDetail() {
       )}
 
       {tab === 'restrictions' && (
-        data.restrictions.length === 0 ? <EmptyState icon="📜" title="No recorded actions" hint="Suspensions, restrictions, warnings and other admin actions on this account will appear here." /> : (
+        (!data.restrictions || data.restrictions.length === 0) ? <EmptyState icon="📜" title="No recorded actions" hint="Suspensions, restrictions, warnings and other admin actions on this account will appear here." /> : (
           <Card flush><div className="table-wrap"><table className="table">
             <thead><tr><th>Action</th><th>By</th><th>Reason</th><th>Outcome</th><th>When</th></tr></thead>
             <tbody>{data.restrictions.map((a) => (
@@ -165,7 +165,7 @@ export default function UserDetail() {
       )}
 
       {tab === 'support' && (
-        data.support.length === 0 ? <EmptyState icon="🎧" title="No support tickets" hint="Support requests filed by this user will appear here." /> : (
+        (!data.support || data.support.length === 0) ? <EmptyState icon="🎧" title="No support tickets" hint="Support requests filed by this user will appear here." /> : (
           <Card flush><div className="table-wrap"><table className="table">
             <thead><tr><th>Subject / description</th><th>Status</th><th>Priority</th><th>Filed</th><th /></tr></thead>
             <tbody>{data.support.map((t) => (

@@ -169,13 +169,24 @@ export class FirestoreStore implements Store {
     if (!this.dbPromise) {
       this.dbPromise = (async () => {
         if (!this.cfg.FIREBASE_PROJECT_ID) throw new ConfigError('FIREBASE_PROJECT_ID is not set');
-        const hasCreds = Boolean(this.cfg.GOOGLE_APPLICATION_CREDENTIALS || this.cfg.FIREBASE_SERVICE_ACCOUNT_JSON || this.cfg.FIRESTORE_EMULATOR_HOST);
+        const hasCreds = Boolean(
+          this.cfg.GOOGLE_APPLICATION_CREDENTIALS ||
+          this.cfg.FIREBASE_SERVICE_ACCOUNT_JSON ||
+          (this.cfg.FIREBASE_CLIENT_EMAIL && this.cfg.FIREBASE_PRIVATE_KEY) ||
+          this.cfg.FIRESTORE_EMULATOR_HOST,
+        );
         if (!hasCreds) throw new ConfigError('Firebase credentials are not configured');
         const admin = await import('firebase-admin');
         if (!admin.apps.length) {
           const opts: Record<string, unknown> = { projectId: this.cfg.FIREBASE_PROJECT_ID };
           if (this.cfg.FIREBASE_SERVICE_ACCOUNT_JSON) {
             opts.credential = admin.credential.cert(JSON.parse(this.cfg.FIREBASE_SERVICE_ACCOUNT_JSON));
+          } else if (this.cfg.FIREBASE_CLIENT_EMAIL && this.cfg.FIREBASE_PRIVATE_KEY) {
+            opts.credential = admin.credential.cert({
+              projectId: this.cfg.FIREBASE_PROJECT_ID,
+              clientEmail: this.cfg.FIREBASE_CLIENT_EMAIL,
+              privateKey: this.cfg.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+            });
           } else if (this.cfg.GOOGLE_APPLICATION_CREDENTIALS) {
             opts.credential = admin.credential.applicationDefault();
           }

@@ -49,10 +49,12 @@ export function emailRouter(store: Store, cfg: AppConfig): Router {
             if (end >= 1) {
               for await (const msg of client.fetch(`${start}:${end}`, { uid: true, envelope: true, flags: true })) {
                 const env = msg.envelope ?? {};
+                const formatAddr = (list: { name?: string; address?: string }[] = []) =>
+                  list.map((a) => (a.name && a.address ? `${a.name} <${a.address}>` : a.address || a.name || '')).filter(Boolean).join(', ');
                 items.push({
                   uid: msg.uid, subject: env.subject ?? '', date: env.date ? new Date(env.date).toISOString() : null,
-                  from: (env.from ?? []).map((a: { name?: string; address?: string }) => ({ name: a.name ?? '', address: a.address ?? '' })),
-                  to: (env.to ?? []).map((a: { name?: string; address?: string }) => ({ name: a.name ?? '', address: a.address ?? '' })),
+                  from: formatAddr(env.from) || 'Unknown Sender',
+                  to: formatAddr(env.to),
                   seen: Array.isArray(msg.flags) ? msg.flags.includes('\\Seen') : false,
                 });
               }
@@ -82,10 +84,12 @@ export function emailRouter(store: Store, cfg: AppConfig): Router {
             const idx = raw.indexOf('\r\n\r\n');
             body = idx >= 0 ? raw.slice(idx + 4) : raw;
           }
+          const formatAddr = (list: { name?: string; address?: string }[] = []) =>
+            list.map((a) => (a.name && a.address ? `${a.name} <${a.address}>` : a.address || a.name || '')).filter(Boolean).join(', ');
           return {
             uid: msg.uid, subject: env.subject ?? '', date: env.date ? new Date(env.date).toISOString() : null,
-            from: (env.from ?? []).map((a: { name?: string; address?: string }) => ({ name: a.name ?? '', address: a.address ?? '' })),
-            to: (env.to ?? []).map((a: { name?: string; address?: string }) => ({ name: a.name ?? '', address: a.address ?? '' })),
+            from: formatAddr(env.from) || 'Unknown Sender',
+            to: formatAddr(env.to),
             body,
           };
         } finally { lock.release(); }

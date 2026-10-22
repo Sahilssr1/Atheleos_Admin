@@ -155,7 +155,7 @@ function ReportsTab() {
                   <dt>Updated</dt><dd>{fmtDate(report.updatedAt)}</dd>
                   <dt>Resolution</dt><dd>{report.resolution || '—'}</dd>
                 </dl>
-                {report.screenshotUrls.length > 0 && (
+                {(report.screenshotUrls || []).length > 0 && (
                   <>
                     <h3 style={{ marginTop: 14 }}>Screenshots</h3>
                     <div className="row wrap">

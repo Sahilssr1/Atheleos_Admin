@@ -16,9 +16,16 @@ function metricNumber(m: MetricValue | number | undefined): string {
 
 export default function Security() {
   const { data, loading, error, reload } = useFetch(() => api.get<SecurityOverview>('/security/overview'), []);
-  const events = data?.loginEvents ?? data?.recentLogins ?? [];
-  const sessions = data?.activeSessions ?? [];
-  const permChanges = data?.permissionChanges ?? [];
+  const events = Array.isArray(data?.loginEvents) ? data.loginEvents : Array.isArray(data?.recentLogins) ? data.recentLogins : [];
+  const sessions = Array.isArray(data?.activeSessions) ? data.activeSessions : [];
+  const activeSessionsCount = typeof data?.activeSessions === 'number'
+    ? data.activeSessions
+    : Array.isArray(data?.activeSessions)
+    ? data.activeSessions.length
+    : typeof (data as unknown as { activeSessionsCount?: number })?.activeSessionsCount === 'number'
+    ? (data as unknown as { activeSessionsCount: number }).activeSessionsCount
+    : sessions.length;
+  const permChanges = Array.isArray(data?.permissionChanges) ? data.permissionChanges : [];
 
   return (
     <div className="page">
@@ -41,7 +48,7 @@ export default function Security() {
               </Card>
               <Card className="stat-card">
                 <span className="stat-label">Active admin sessions</span>
-                <span className="stat-value" style={{ fontSize: 22 }}>{sessions.length > 0 ? fmtNum(sessions.length) : 'Not available'}</span>
+                <span className="stat-value" style={{ fontSize: 22 }}>{activeSessionsCount > 0 ? fmtNum(activeSessionsCount) : 'None'}</span>
                 <span className="stat-note">Sessions the API reports as active</span>
               </Card>
               <Card className="stat-card">
@@ -63,7 +70,7 @@ export default function Security() {
                           <td>{e.email ?? e.adminId ?? '—'}</td>
                           <td><Badge tone={e.success ? 'ok' : 'danger'}>{e.success ? 'Success' : 'Failed'}</Badge></td>
                           <td className="mono small">{e.ip ?? '—'}</td>
-                          <td>{fmtDate(e.createdAt)}</td>
+                          <td>{fmtDate(e.createdAt ?? (e as unknown as { at?: string }).at)}</td>
                         </tr>
                       ))}
                     </tbody>

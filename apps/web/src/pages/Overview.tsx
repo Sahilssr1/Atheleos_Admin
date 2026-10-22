@@ -66,22 +66,22 @@ export default function Overview() {
           <div className="grid cols-3" style={{ marginTop: 16 }}>
             <Card>
               <h2>Registrations</h2>
-              <LineChart data={data.series.registrations} color="#d62976" label="Registration trend" />
+              <LineChart data={data.series?.registrations ?? []} color="#d62976" label="Registration trend" />
             </Card>
             <Card>
               <h2>Content published</h2>
-              <LineChart data={data.series.content} color="#962fbf" label="Content publication trend" />
+              <LineChart data={data.series?.content ?? []} color="#962fbf" label="Content publication trend" />
             </Card>
             <Card>
               <h2>Reports filed</h2>
-              <LineChart data={data.series.reports} color="#fa7e1e" label="Report volume trend" />
+              <LineChart data={data.series?.reports ?? []} color="#fa7e1e" label="Report volume trend" />
             </Card>
           </div>
 
           <div className="grid cols-2" style={{ marginTop: 16 }}>
             <Card flush>
               <div style={{ padding: '14px 16px 6px' }}><h2>Recent administrative actions</h2></div>
-              {data.recentActions.length === 0
+              {(!data.recentActions || data.recentActions.length === 0)
                 ? <p className="muted small" style={{ padding: '0 16px 16px' }}>No administrative actions recorded yet.</p>
                 : (
                   <div className="table-wrap">

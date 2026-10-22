@@ -24,7 +24,19 @@ export default function Settings() {
   }, [data]);
 
   const platform = data?.platform ?? {};
-  const integrations = data?.integrations ?? [];
+  const rawIntegrations = data?.integrations;
+  const integrations = Array.isArray(rawIntegrations)
+    ? rawIntegrations
+    : rawIntegrations && typeof rawIntegrations === 'object'
+    ? Object.entries(rawIntegrations)
+        .filter(([k]) => k !== 'dataMode' && k !== 'smtpFrom')
+        .map(([k, v]) => ({
+          name: k,
+          label: k.replace(/Configured$/, '').replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()),
+          configured: Boolean(v),
+          detail: typeof v === 'string' ? v : undefined,
+        }))
+    : [];
 
   const save = async () => {
     setSaving(true);

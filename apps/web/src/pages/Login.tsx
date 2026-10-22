@@ -48,7 +48,7 @@ export default function Login() {
     <div className="auth-wrap">
       <div style={{ position: 'fixed', top: 14, right: 14 }}><ThemeToggle /></div>
       <div className="auth-card">
-        <div className="auth-logo" aria-hidden>A</div>
+        <div className="auth-logo"><img src="/atheleos.png" alt="Atheleos" className="auth-logo-img" /></div>
         <h1 style={{ textAlign: 'center', fontSize: 20 }}>Atheleos <span className="grad-text">Admin</span></h1>
         <p className="muted small" style={{ textAlign: 'center', marginTop: 0 }}>
           Authorized administrators only. All access is logged.

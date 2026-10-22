@@ -164,7 +164,14 @@ export function settingsRouter(store: Store, cfg: AppConfig): Router {
       res.json({
         data: {
           ...data,
-          integrations: {
+          integrations: [
+            { name: 'firebase', label: 'Firebase / Firestore', configured: cfg.firebaseConfigured, detail: `Mode: ${cfg.DATA_MODE}` },
+            { name: 'smtp', label: 'Outgoing Mail (SMTP)', configured: cfg.smtpConfigured, detail: cfg.SMTP_FROM || 'Configured' },
+            { name: 'imap', label: 'Incoming Mail (IMAP)', configured: cfg.imapConfigured, detail: cfg.IMAP_HOST ? `${cfg.IMAP_HOST}:${cfg.IMAP_PORT}` : 'Not configured' },
+            { name: 'mediaWorker', label: 'Cloudflare Media Worker', configured: Boolean(cfg.MEDIA_WORKER_URL), detail: cfg.MEDIA_WORKER_URL || 'Not configured' },
+            { name: 'functions', label: 'Firebase Functions', configured: Boolean(cfg.FUNCTIONS_BASE_URL), detail: cfg.FUNCTIONS_BASE_URL || 'Not configured' },
+          ],
+          integrationMap: {
             firebaseConfigured: cfg.firebaseConfigured, dataMode: cfg.DATA_MODE,
             smtpConfigured: cfg.smtpConfigured, imapConfigured: cfg.imapConfigured,
             smtpFrom: cfg.SMTP_FROM, mediaWorkerConfigured: Boolean(cfg.MEDIA_WORKER_URL),
@@ -207,7 +214,14 @@ export function securityRouter(store: Store, cfg: AppConfig): Router {
             .map((e) => ({ id: e.id, adminId: str(e.data.adminId), email: str(e.data.email), success: e.data.success === true, ip: str(e.data.ip), at: str(e.data.at) })),
           failedAttempts24h: failedIn(24 * 3600 * 1000),
           failedAttempts7d: failedIn(7 * 24 * 3600 * 1000),
-          activeSessions: activeSessions.length,
+          activeSessionsCount: activeSessions.length,
+          activeSessions: activeSessions.slice(0, 20).map((s) => ({
+            id: s.id,
+            adminId: str(s.data.adminId),
+            email: str(s.data.email || s.data.adminEmail || 'admin'),
+            createdAt: str(s.data.createdAt),
+            expiresAt: str(s.data.expiresAt),
+          })),
           permissionChanges: [...audits].filter((a) => str(a.data.action).includes('permission') || str(a.data.action).startsWith('roles.'))
             .sort((a, b) => str(b.data.createdAt).localeCompare(str(a.data.createdAt))).slice(0, 20)
             .map((a) => ({ id: a.id, adminId: str(a.data.adminId), action: str(a.data.action), resourceId: str(a.data.resourceId), reason: str(a.data.reason), createdAt: str(a.data.createdAt) })),

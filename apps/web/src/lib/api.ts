@@ -2,7 +2,8 @@
 // Cookie auth (credentials: 'include'); success envelope { data }, error envelope
 // { error: { code, message } }.
 
-const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api/admin';
+const rawBase = (import.meta.env.VITE_API_BASE as string | undefined)?.trim();
+const BASE = rawBase && rawBase.length > 0 ? rawBase : '/api/admin';
 
 export class ApiError extends Error {
   code: string;

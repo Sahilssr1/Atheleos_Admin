@@ -44,7 +44,7 @@ export default function ResetPassword() {
   return (
     <div className="auth-wrap">
       <div className="auth-card">
-        <div className="auth-logo" aria-hidden>A</div>
+        <div className="auth-logo"><img src="/atheleos.png" alt="Atheleos" className="auth-logo-img" /></div>
         <h1 style={{ textAlign: 'center', fontSize: 20 }}>{token ? 'Set a new password' : 'Reset password'}</h1>
         {error && <div className="config-box" role="alert" style={{ borderColor: 'var(--danger)', background: 'var(--danger-bg)', marginBottom: 14 }}>{error}</div>}
         {done ? (

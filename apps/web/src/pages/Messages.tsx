@@ -53,7 +53,7 @@ export default function Messages() {
   }, [thread.data]);
 
   const selected = convs.data?.items.find((c) => c.id === selectedId) ?? null;
-  const myUnread = user ? selected?.unreadBy.includes(user.id) : false;
+  const myUnread = user && Array.isArray(selected?.unreadBy) ? selected.unreadBy.includes(user.id) : false;
   void myUnread;
 
   const send = async () => {
@@ -110,9 +110,9 @@ export default function Messages() {
                         <span className="small faint">{timeAgo(c.lastMessageAt)}</span>
                       </span>
                       <span className="small muted" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.lastMessage || '—'}</span>
-                      <span className="small faint">{c.type} · {c.participantIds.length} participants</span>
+                      <span className="small faint">{c.type} · {(c.participantIds || []).length} participants</span>
                     </span>
-                    {c.unreadBy.length > 0 && <Badge tone="danger">{c.unreadBy.length} unread</Badge>}
+                    {(c.unreadBy || []).length > 0 && <Badge tone="danger">{c.unreadBy.length} unread</Badge>}
                   </button>
                 ))}
           {convs.data && convs.data.total !== null && convs.data.total > PAGE_SIZE && (
@@ -139,7 +139,7 @@ export default function Messages() {
                 <Avatar name={selected?.name || ''} size={34} />
                 <div style={{ minWidth: 0 }}>
                   <strong>{selected?.name || 'Conversation'}</strong>
-                  <div className="small faint">{selected?.participantIds.join(', ')}</div>
+                  <div className="small faint">{(selected?.participantIds || []).join(', ')}</div>
                 </div>
                 <span className="spacer" />
                 <span className="small faint">Auto-refreshes every 15s</span>
@@ -182,10 +182,10 @@ export default function Messages() {
               <dl className="kv" style={{ gridTemplateColumns: '90px 1fr' }}>
                 <dt>Type</dt><dd>{selected.type}</dd>
                 <dt>Last activity</dt><dd>{fmtDate(selected.lastMessageAt)}</dd>
-                <dt>Unread by</dt><dd>{selected.unreadBy.length ? selected.unreadBy.join(', ') : '—'}</dd>
+                <dt>Unread by</dt><dd>{(selected.unreadBy || []).length ? selected.unreadBy.join(', ') : '—'}</dd>
               </dl>
               <h3 style={{ marginTop: 16 }}>Participants</h3>
-              {selected.participantIds.map((pid) => (
+              {(selected.participantIds || []).map((pid) => (
                 <div key={pid} className="row" style={{ marginBottom: 8 }}>
                   <Avatar name={pid} size={30} />
                   <Link to={`/users/${pid}`} className="small mono">{pid}</Link>

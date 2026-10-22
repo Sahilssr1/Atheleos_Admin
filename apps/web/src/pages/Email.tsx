@@ -17,6 +17,16 @@ interface ComposeState {
 }
 const EMPTY_COMPOSE: ComposeState = { to: '', cc: '', bcc: '', subject: '', html: '' };
 const splitList = (s: string) => s.split(/[,;]/).map((x) => x.trim()).filter(Boolean);
+const safeAddress = (val: any): string => {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  if (Array.isArray(val)) return val.map(safeAddress).filter(Boolean).join(', ');
+  if (typeof val === 'object') {
+    if (val.name && val.address) return `${val.name} <${val.address}>`;
+    return val.address || val.name || JSON.stringify(val);
+  }
+  return String(val);
+};
 
 export default function Email() {
   const toast = useToast();
@@ -101,7 +111,7 @@ function InboxTab({ onCompose }: { onCompose: (c: ComposeState) => void }) {
                 <button key={m.uid} className={`email-item${unread ? ' unread' : ''}${m.uid === selectedUid ? ' active' : ''}`}
                   onClick={() => setSelectedUid(m.uid)}>
                   <span className="row between">
-                    <strong style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.from}</strong>
+                    <strong style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{safeAddress(m.from)}</strong>
                     <span className="small faint">{m.date ? new Date(m.date).toLocaleDateString() : ''}</span>
                   </span>
                   <span className="email-subject" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.subject || '(no subject)'}</span>
@@ -126,9 +136,9 @@ function InboxTab({ onCompose }: { onCompose: (c: ComposeState) => void }) {
           <article>
             <h2 style={{ fontSize: 18 }}>{message.data.subject || '(no subject)'}</h2>
             <dl className="kv">
-              <dt>From</dt><dd>{message.data.from}</dd>
-              <dt>To</dt><dd>{message.data.to ?? '—'}</dd>
-              {message.data.cc && <><dt>CC</dt><dd>{message.data.cc}</dd></>}
+              <dt>From</dt><dd>{safeAddress(message.data.from)}</dd>
+              <dt>To</dt><dd>{safeAddress(message.data.to) || '—'}</dd>
+              {message.data.cc && <><dt>CC</dt><dd>{safeAddress(message.data.cc)}</dd></>}
               <dt>Date</dt><dd>{fmtDate(message.data.date)}</dd>
             </dl>
             {message.data.attachments && message.data.attachments.length > 0 && (
@@ -142,14 +152,14 @@ function InboxTab({ onCompose }: { onCompose: (c: ComposeState) => void }) {
             <PermissionGate permission="email.send">
               <div className="row wrap">
                 <Button size="sm" variant="primary" onClick={() => onCompose({
-                  to: message.data!.from, cc: '', bcc: '',
+                  to: safeAddress(message.data!.from), cc: '', bcc: '',
                   subject: message.data!.subject?.startsWith('Re:') ? message.data!.subject : `Re: ${message.data!.subject ?? ''}`,
                   html: `<br/><br/><blockquote style="border-left:3px solid #ccc;margin:0;padding-left:12px;color:#666">${message.data!.html ?? (message.data!.text ?? '').replace(/\n/g, '<br/>')}</blockquote>`,
                 })}>↩ Reply</Button>
                 <Button size="sm" onClick={() => onCompose({
                   to: '', cc: '', bcc: '',
                   subject: message.data!.subject?.startsWith('Fwd:') ? message.data!.subject : `Fwd: ${message.data!.subject ?? ''}`,
-                  html: `<br/><br/>---------- Forwarded message ----------<br/>From: ${message.data!.from}<br/>${message.data!.html ?? (message.data!.text ?? '').replace(/\n/g, '<br/>')}`,
+                  html: `<br/><br/>---------- Forwarded message ----------<br/>From: ${safeAddress(message.data!.from)}<br/>${message.data!.html ?? (message.data!.text ?? '').replace(/\n/g, '<br/>')}`,
                 })}>↪ Forward</Button>
               </div>
             </PermissionGate>
@@ -175,7 +185,7 @@ function QueueTab() {
             <tbody>
               {data?.items.map((m) => (
                 <tr key={m.id}>
-                  <td>{Array.isArray(m.to) ? m.to.join(', ') : m.to}</td>
+                  <td>{safeAddress(m.to)}</td>
                   <td>{m.subject ?? <span className="faint">(from app mail queue)</span>}</td>
                   <td>{m.delivery?.state ? <StatusBadge status={m.delivery.state} /> : <span className="faint">unknown</span>}</td>
                   <td>{m.delivery?.attempts ?? '—'}</td>

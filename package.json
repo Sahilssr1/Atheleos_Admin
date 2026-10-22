@@ -3,9 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "description": "Atheleos Admin Panel — administration and moderation console for the Atheleos platform (Flutter + Firebase app).",
-  "workspaces": ["packages/shared", "apps/api", "apps/web"],
+  "workspaces": [
+    "packages/shared",
+    "apps/api",
+    "apps/web"
+  ],
   "scripts": {
-    "dev": "npm run dev -w @atheleos/api & npm run dev -w @atheleos/web",
+    "dev": "concurrently -k -p \"[{name}]\" -n \"api,web\" -c \"blue,cyan\" \"npm run dev:api\" \"npm run dev:web\"",
     "dev:api": "npm run dev -w @atheleos/api",
     "dev:web": "npm run dev -w @atheleos/web",
     "build": "npm run build -w @atheleos/shared && npm run build -w @atheleos/api && npm run build -w @atheleos/web",
@@ -13,5 +17,10 @@
     "test": "npm run test -w @atheleos/api && npm run test -w @atheleos/web",
     "bootstrap-admin": "npm run bootstrap-admin -w @atheleos/api"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
 }

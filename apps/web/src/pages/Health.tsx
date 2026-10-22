@@ -5,17 +5,24 @@ import { Badge, Button, Card, ErrorState, Skeleton } from '../components/ui';
 
 function normalize(data: HealthResponse | null): { checks: HealthCheck[]; dataMode?: string } {
   if (!data) return { checks: [] };
-  const raw = data.checks ?? data.services;
+  const raw = data.checks ?? data.services ?? data;
   if (Array.isArray(raw)) return { checks: raw, dataMode: data.dataMode ?? data.mode };
-  // Tolerate an object map: { firestore: {status, latencyMs}, ... }
   const checks: HealthCheck[] = [];
-  for (const [name, value] of Object.entries(data)) {
+  const map = typeof raw === 'object' && raw !== null ? raw : {};
+  for (const [name, value] of Object.entries(map)) {
     if (value && typeof value === 'object' && 'status' in (value as Record<string, unknown>)) {
       const v = value as { status: string; latencyMs?: number; message?: string; label?: string };
-      checks.push({ name, label: v.label, status: v.status, latencyMs: v.latencyMs, message: v.message });
+      checks.push({
+        name,
+        label: v.label ?? name.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()),
+        status: v.status,
+        latencyMs: v.latencyMs,
+        message: v.message,
+      });
     }
   }
-  return { checks, dataMode: data.dataMode ?? data.mode };
+  const fsMode = (data.checks as Record<string, { mode?: string }> | undefined)?.firestore?.mode;
+  return { checks, dataMode: data.dataMode ?? data.mode ?? fsMode };
 }
 
 function tone(status: string): 'ok' | 'danger' | 'warn' {

@@ -195,7 +195,7 @@ export default function AppLayout({ children }: { children?: ReactNode }) {
       {drawer && <div className="sidebar-backdrop" onClick={() => setDrawer(false)} />}
       <aside className={`sidebar${drawer ? ' open' : ''}`} aria-label="Admin navigation">
         <div className="brand">
-          <span className="brand-mark" aria-hidden>A</span>
+          <img src="/atheleos.png" alt="Atheleos" className="brand-logo-img" />
           <span>
             <span className="brand-name">Atheleos</span>
             <span className="brand-sub" style={{ display: 'block' }}>Admin Panel</span>
