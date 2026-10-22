@@ -1,0 +1,1 @@
+{"compilerOptions":{"baseUrl":".","forceConsistentCasingInFileNames":true,"jsx":"react-jsx","module":"ESNext","moduleResolution":"bundler","noEmit":true,"paths":{"@atheleos/shared":["../../packages/shared/src/index.ts"]},"skipLibCheck":true,"strict":true,"target":"ES2022","types":["vitest/globals","@testing-library/jest-dom"]},"include":["src","tests","vite.config.ts"]}
