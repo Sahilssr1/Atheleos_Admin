@@ -1,3 +1,4 @@
+import { AlertTriangle, CheckCircle2, Info } from 'lucide-react';
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
 
 interface Toast { id: number; kind: 'success' | 'error' | 'info'; message: string }
@@ -19,7 +20,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div className="toast-stack" role="status" aria-live="polite">
         {toasts.map((t) => (
           <div key={t.id} className={`toast ${t.kind}`}>
-            <span aria-hidden>{t.kind === 'success' ? '✓' : t.kind === 'error' ? '⚠' : 'ℹ'}</span>
+            <span aria-hidden style={{ display: 'inline-flex', marginTop: 1, color: t.kind === 'success' ? 'var(--ok)' : t.kind === 'error' ? 'var(--danger)' : 'var(--info)' }}>{t.kind === 'success' ? <CheckCircle2 size={16} /> : t.kind === 'error' ? <AlertTriangle size={16} /> : <Info size={16} />}</span>
             <span>{t.message}</span>
           </div>
         ))}

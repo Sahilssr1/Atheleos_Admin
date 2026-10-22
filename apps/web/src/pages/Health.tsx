@@ -1,4 +1,5 @@
 import { api } from '../lib/api';
+import { Database, Film, Flame, HardDrive, Inbox, Mail, MessageCircle, Send, Settings2, Shapes, Zap, type LucideIcon } from 'lucide-react';
 import { useFetch } from '../hooks/useFetch';
 import type { HealthCheck, HealthResponse } from '../lib/types';
 import { Badge, Button, Card, ErrorState, Skeleton } from '../components/ui';
@@ -36,9 +37,9 @@ function label(status: string): string {
   return status;
 }
 
-const ICONS: Record<string, string> = {
-  firestore: '🔥', database: '🗄️', smtp: '📤', email: '✉️', imap: '📥',
-  worker: '⚙️', media: '🎞️', functions: '⚡', messaging: '💬', storage: '💾',
+const ICONS: Record<string, LucideIcon> = {
+  firestore: Flame, database: Database, smtp: Send, email: Mail, imap: Inbox,
+  worker: Settings2, media: Film, functions: Zap, messaging: MessageCircle, storage: HardDrive,
 };
 
 export default function Health() {
@@ -74,7 +75,7 @@ export default function Health() {
           {checks.map((c) => (
             <Card key={c.name}>
               <div className="row between">
-                <span style={{ fontSize: 22 }} aria-hidden>{ICONS[c.name.toLowerCase()] ?? '🧩'}</span>
+                {(() => { const SvcIcon = ICONS[c.name.toLowerCase()] ?? Shapes; return <span aria-hidden style={{ display: 'inline-flex', color: 'var(--text-dim)' }}><SvcIcon size={22} /></span>; })()}
                 <Badge tone={tone(c.status)}>{label(c.status)}</Badge>
               </div>
               <h2 style={{ marginTop: 10 }}>{c.label ?? c.name}</h2>

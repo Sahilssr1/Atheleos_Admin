@@ -4,15 +4,19 @@ import { api, qs } from '../lib/api';
 import { useFetch } from '../hooks/useFetch';
 import type { AnalyticsResponse, LabeledCount } from '../lib/types';
 import { Card, ErrorState, Skeleton, StatCard } from '../components/ui';
-import { BarChart } from '../components/charts';
+import { BarChart, DonutChart } from '../components/charts';
 import { RangeFilter, rangeQuery, type RangeValue } from '../components/RangeFilter';
 
-function ChartCard({ title, data, color }: { title: string; data: LabeledCount[] | undefined; color: string }) {
+function ChartCard({ title, data, color, chart = 'bar' }: {
+  title: string; data: LabeledCount[] | undefined; color: string; chart?: 'bar' | 'donut';
+}) {
   return (
     <Card>
       <h2>{title}</h2>
       {data && data.length > 0
-        ? <BarChart data={data.map((d) => ({ label: d.label, count: d.count }))} color={color} label={title} />
+        ? chart === 'donut'
+          ? <DonutChart data={data.map((d) => ({ label: d.label, count: d.count }))} label={title} />
+          : <BarChart data={data.map((d) => ({ label: d.label, count: d.count }))} color={color} label={title} />
         : <p className="muted small">Not available — no source data for this breakdown in the selected range.</p>}
     </Card>
   );
@@ -54,17 +58,17 @@ export default function Analytics() {
           </div>
 
           <div className="grid cols-2" style={{ marginTop: 16 }}>
-            <ChartCard title="Registrations by role" data={data.registrations?.byRole} color="#d62976" />
-            <ChartCard title="Registrations by sport" data={data.registrations?.bySport} color="#962fbf" />
+            <ChartCard title="Registrations by role" data={data.registrations?.byRole} color="#6c5ce7" />
+            <ChartCard title="Registrations by sport" data={data.registrations?.bySport} color="#8b5cf6" />
           </div>
           <div className="grid cols-2" style={{ marginTop: 16 }}>
-            <ChartCard title="Registrations by city" data={data.registrations?.byCity} color="#4f5bd5" />
-            <ChartCard title="Content published by type" data={data.contentByType} color="#fa7e1e" />
+            <ChartCard title="Registrations by city" data={data.registrations?.byCity} color="#4f8ff7" />
+            <ChartCard title="Content published by type" data={data.contentByType} color="#fa7e1e" chart="donut" />
           </div>
           <div className="grid cols-2" style={{ marginTop: 16 }}>
             <ChartCard title="Reports by status" data={data.reports?.byStatus} color="#f5a623" />
             {restrictions
-              ? <ChartCard title="Account restrictions by type" data={restrictions} color="#ed4956" />
+              ? <ChartCard title="Account restrictions by type" data={restrictions} color="#e5536b" />
               : (
                 <Card>
                   <h2>Account restrictions</h2>
@@ -75,7 +79,7 @@ export default function Analytics() {
               )}
           </div>
           <div className="grid cols-2" style={{ marginTop: 16 }}>
-            <ChartCard title="Email delivery outcomes" data={data.emailOutcomes} color="#2ecc71" />
+            <ChartCard title="Email delivery outcomes" data={data.emailOutcomes} color="#2fbf71" />
             <Card>
               <h2>Support response times</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

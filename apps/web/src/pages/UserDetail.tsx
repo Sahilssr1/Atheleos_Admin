@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AlertTriangle, CalendarDays, FileText, Mail, MapPin, Phone } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError } from '../lib/api';
 import { useFetch } from '../hooks/useFetch';
@@ -67,9 +68,9 @@ export default function UserDetail() {
             <div className="muted">@{user.username} · {user.role || 'No role'}{user.sport ? ` · ${user.sport}` : ''}</div>
             <div className="small faint mono">{user.id}</div>
             <div className="row wrap small" style={{ marginTop: 8 }}>
-              <span>📧 {user.email ?? 'Hidden (no contact permission)'}</span>
-              {user.phone && <span>📱 {user.phone}</span>}
-              <span>📍 {[user.city, user.state, user.country].filter(Boolean).join(', ') || '—'}</span>
+              <span style={{ display: 'inline-flex', gap: 5, alignItems: 'center' }}><Mail size={12} aria-hidden /> {user.email ?? 'Hidden (no contact permission)'}</span>
+              {user.phone && <span style={{ display: 'inline-flex', gap: 5, alignItems: 'center' }}><Phone size={12} aria-hidden /> {user.phone}</span>}
+              <span style={{ display: 'inline-flex', gap: 5, alignItems: 'center' }}><MapPin size={12} aria-hidden /> {[user.city, user.state, user.country].filter(Boolean).join(', ') || '—'}</span>
               <span>Joined {fmtDate(user.createdAt)}</span>
             </div>
             {user.accountStatus !== 'active' && user.statusReason && (
@@ -81,7 +82,7 @@ export default function UserDetail() {
           </div>
           <div className="row wrap">
             <PermissionGate permission="users.warn">
-              <Button size="sm" onClick={() => setAction('warn')}>⚠ Warn</Button>
+              <Button size="sm" onClick={() => setAction('warn')}><AlertTriangle size={13} aria-hidden /> Warn</Button>
             </PermissionGate>
             <PermissionGate permission="users.restrict">
               <Button size="sm" onClick={() => setAction('restrict')}>Restrict</Button>
@@ -126,7 +127,7 @@ export default function UserDetail() {
                   {c.media[0] ? (c.media[0].type.startsWith('video')
                     ? <video src={c.media[0].url} preload="metadata" muted />
                     : <img src={c.media[0].thumbnailUrl ?? c.media[0].url} alt="" loading="lazy" />)
-                    : <span className="faint" style={{ fontSize: 30 }}>{c.type === 'event' ? '📅' : '📝'}</span>}
+                    : <span className="faint" style={{ display: 'inline-flex' }}>{c.type === 'event' ? <CalendarDays size={28} /> : <FileText size={28} />}</span>}
                   <span className="media-status"><StatusBadge status={c.status} /></span>
                 </div>
                 <div className="media-body">

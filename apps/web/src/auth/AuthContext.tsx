@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { Lock } from 'lucide-react';
 import { Navigate, useLocation } from 'react-router-dom';
 import type { Permission, StaffUser } from '@atheleos/shared';
 import { api, ApiError } from '../lib/api';
@@ -98,7 +99,7 @@ export function RequirePermission({ permission, children }: { permission: Permis
     return (
       <div className="page">
         <div className="state-box">
-          <div className="state-icon" aria-hidden>🔒</div>
+          <div className="state-icon" aria-hidden><Lock /></div>
           <div style={{ fontWeight: 600, color: 'var(--text)' }}>You don’t have access to this module</div>
           <div className="small" style={{ marginTop: 4 }}>
             The permission <span className="mono">{permission}</span> is required. Ask a Super Admin if you need access.

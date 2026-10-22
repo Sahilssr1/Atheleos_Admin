@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { X } from 'lucide-react';
 import { Button } from './ui';
 
 export function Dialog({ title, onClose, children, wide }: {
@@ -14,7 +15,7 @@ export function Dialog({ title, onClose, children, wide }: {
       <div className={`dialog${wide ? ' wide' : ''}`} role="dialog" aria-modal="true" aria-label={title}>
         <div className="row between" style={{ marginBottom: 14 }}>
           <h2 style={{ margin: 0 }}>{title}</h2>
-          <button className="icon-btn" onClick={onClose} aria-label="Close dialog">✕</button>
+          <button className="icon-btn" onClick={onClose} aria-label="Close dialog"><X /></button>
         </div>
         {children}
       </div>
@@ -34,7 +35,7 @@ export function Drawer({ title, onClose, children }: { title: string; onClose: (
       <aside className="drawer" role="dialog" aria-modal="true" aria-label={title}>
         <div className="row between" style={{ marginBottom: 14 }}>
           <h2 style={{ margin: 0 }}>{title}</h2>
-          <button className="icon-btn" onClick={onClose} aria-label="Close panel">✕</button>
+          <button className="icon-btn" onClick={onClose} aria-label="Close panel"><X /></button>
         </div>
         {children}
       </aside>

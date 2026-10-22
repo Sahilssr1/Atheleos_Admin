@@ -4,6 +4,10 @@ import type { DashboardOverview } from '@atheleos/shared';
 import { api, qs } from '../lib/api';
 import { useFetch } from '../hooks/useFetch';
 import { fmtDate, timeAgo } from '../lib/format';
+import {
+  Activity, Bell, CheckCircle2, Clapperboard, FileImage, Flag, LifeBuoy, Mail, MailCheck,
+  MailWarning, MessageSquare, ShieldCheck, Sparkles, UserPlus, UserX, Users,
+} from 'lucide-react';
 import { Badge, Card, CardSkeleton, ErrorState, StatCard } from '../components/ui';
 import { LineChart } from '../components/charts';
 import { RangeFilter, rangeQuery, type RangeValue } from '../components/RangeFilter';
@@ -43,38 +47,38 @@ export default function Overview() {
       {data && (
         <>
           <div className="grid cols-4">
-            <StatCard label="Total users" metric={data.totals.users} />
-            <StatCard label="New registrations" metric={data.totals.newUsers} />
-            <StatCard label="Active users" metric={data.totals.activeUsers} />
-            <StatCard label="Suspended users" metric={data.totals.suspendedUsers} />
-            <StatCard label="Posts" metric={data.totals.posts} />
-            <StatCard label="Clips / Reels" metric={data.totals.clips} />
-            <StatCard label="Stories" metric={data.totals.stories} />
-            <StatCard label="Comments" metric={data.totals.comments} />
-            <StatCard label="Open reports" metric={data.totals.reportsOpen} />
-            <StatCard label="Pending moderation" metric={data.totals.moderationPending} />
-            <StatCard label="Open support tickets" metric={data.totals.supportOpen} />
-            <StatCard label="Notifications sent" metric={data.totals.notificationsSent} />
+            <StatCard label="Total users" icon={Users} metric={data.totals.users} />
+            <StatCard label="New registrations" icon={UserPlus} metric={data.totals.newUsers} />
+            <StatCard label="Active users" icon={Activity} metric={data.totals.activeUsers} />
+            <StatCard label="Suspended users" icon={UserX} metric={data.totals.suspendedUsers} />
+            <StatCard label="Posts" icon={FileImage} metric={data.totals.posts} />
+            <StatCard label="Clips / Reels" icon={Clapperboard} metric={data.totals.clips} />
+            <StatCard label="Stories" icon={Sparkles} metric={data.totals.stories} />
+            <StatCard label="Comments" icon={MessageSquare} metric={data.totals.comments} />
+            <StatCard label="Open reports" icon={Flag} metric={data.totals.reportsOpen} />
+            <StatCard label="Pending moderation" icon={ShieldCheck} metric={data.totals.moderationPending} />
+            <StatCard label="Open support tickets" icon={LifeBuoy} metric={data.totals.supportOpen} />
+            <StatCard label="Notifications sent" icon={Bell} metric={data.totals.notificationsSent} />
           </div>
 
           <div className="grid cols-3" style={{ marginTop: 16 }}>
-            <StatCard label="Emails queued" metric={data.totals.emailsQueued} />
-            <StatCard label="Emails delivered" metric={data.totals.emailsDelivered} />
-            <StatCard label="Emails failed" metric={data.totals.emailsFailed} />
+            <StatCard label="Emails queued" icon={Mail} metric={data.totals.emailsQueued} />
+            <StatCard label="Emails delivered" icon={MailCheck} metric={data.totals.emailsDelivered} />
+            <StatCard label="Emails failed" icon={MailWarning} metric={data.totals.emailsFailed} />
           </div>
 
           <div className="grid cols-3" style={{ marginTop: 16 }}>
             <Card>
               <h2>Registrations</h2>
-              <LineChart data={data.series?.registrations ?? []} color="#d62976" label="Registration trend" />
+              <LineChart data={data.series?.registrations ?? []} color="#6c5ce7" label="Registration trend" />
             </Card>
             <Card>
               <h2>Content published</h2>
-              <LineChart data={data.series?.content ?? []} color="#962fbf" label="Content publication trend" />
+              <LineChart data={data.series?.content ?? []} color="#4f8ff7" label="Content publication trend" />
             </Card>
             <Card>
               <h2>Reports filed</h2>
-              <LineChart data={data.series?.reports ?? []} color="#fa7e1e" label="Report volume trend" />
+              <LineChart data={data.series?.reports ?? []} color="#f5a623" label="Report volume trend" />
             </Card>
           </div>
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { CalendarDays, Circle, Clock, Eye, FileText, Flag, Heart, MessageCircle, Share2 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { ContentItem, ContentType, Paginated } from '@atheleos/shared';
 import { api, ApiError, qs } from '../lib/api';
@@ -17,7 +18,7 @@ export function MediaThumb({ item, height }: { item: ContentItem; height?: numbe
   if (!m) {
     return (
       <div className="media-thumb" style={height ? { aspectRatio: 'auto', height } : undefined}>
-        <span className="faint" style={{ fontSize: 34 }}>{item.type === 'event' ? '📅' : item.type === 'story' ? '⭕' : '📝'}</span>
+        <span className="faint" style={{ display: 'inline-flex' }}>{item.type === 'event' ? <CalendarDays size={32} /> : item.type === 'story' ? <Circle size={32} /> : <FileText size={32} />}</span>
       </div>
     );
   }
@@ -145,7 +146,7 @@ export function ContentBrowser({ types, heading, subheading }: {
                 <div style={{ position: 'relative' }}>
                   <MediaThumb item={item} />
                   <span style={{ position: 'absolute', top: 8, left: 8 }}><StatusBadge status={item.status} /></span>
-                  {item.reportCount > 0 && <span style={{ position: 'absolute', top: 8, right: 8 }}><Badge tone="danger">🚩 {item.reportCount}</Badge></span>}
+                  {item.reportCount > 0 && <span style={{ position: 'absolute', top: 8, right: 8 }}><Badge tone="danger"><Flag size={11} /> {item.reportCount}</Badge></span>}
                 </div>
                 <div className="media-body">
                   <div className="row" style={{ gap: 8 }}>
@@ -158,9 +159,14 @@ export function ContentBrowser({ types, heading, subheading }: {
                   <p className="small muted" style={{ margin: '8px 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {item.caption || 'No caption'}
                   </p>
-                  <div className="small faint">♥ {item.likes} · 💬 {item.commentsCount} · ↗ {item.shares} · 👁 {item.views}</div>
+                  <div className="small faint" style={{ display: 'flex', gap: 11, alignItems: 'center' }}>
+                    <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}><Heart size={12} aria-hidden /> {item.likes}</span>
+                    <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}><MessageCircle size={12} aria-hidden /> {item.commentsCount}</span>
+                    <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}><Share2 size={12} aria-hidden /> {item.shares}</span>
+                    <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}><Eye size={12} aria-hidden /> {item.views}</span>
+                  </div>
                   {item.type === 'story' && item.expiresAt && (
-                    <div className="small" style={{ marginTop: 4 }}>⏳ {countdown(item.expiresAt)} · expires {fmtDate(item.expiresAt)}</div>
+                    <div className="small" style={{ marginTop: 4, display: 'flex', gap: 5, alignItems: 'center' }}><Clock size={12} aria-hidden /> {countdown(item.expiresAt)} · expires {fmtDate(item.expiresAt)}</div>
                   )}
                   <div className="row" style={{ marginTop: 10 }}>
                     {bulkSupported && (

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { ChatMessageItem, Conversation, Paginated } from '@atheleos/shared';
 import { api, ApiError, qs } from '../lib/api';
@@ -83,7 +84,7 @@ export default function Messages() {
     <div>
       <div style={{ padding: '14px 24px 0' }}>
         <div className="config-box" style={{ borderStyle: 'solid' }}>
-          🔒 <strong>Privacy & audit:</strong> private conversations are visible only to staff holding the
+          <Lock size={13} aria-hidden style={{ verticalAlign: -2 }} /> <strong>Privacy & audit:</strong> private conversations are visible only to staff holding the
           <span className="mono"> messages.view</span> permission. Opening a conversation writes an audit-log
           entry, and admin messages are clearly marked as sent by the admin team in the app.
         </div>

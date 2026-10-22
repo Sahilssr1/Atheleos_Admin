@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Mail, Paperclip } from 'lucide-react';
 import type { Paginated } from '@atheleos/shared';
 import { api, ApiError, qs } from '../lib/api';
 import { useFetch } from '../hooks/useFetch';
@@ -42,7 +43,7 @@ export default function Email() {
           <p className="muted" style={{ margin: 0 }}>Mailbox inbox (IMAP), outgoing delivery queue and drafts for the Atheleos support mailbox.</p>
         </div>
         <PermissionGate permission="email.send">
-          <Button variant="primary" onClick={() => setCompose(EMPTY_COMPOSE)}>✉ Compose</Button>
+          <Button variant="primary" onClick={() => setCompose(EMPTY_COMPOSE)}><Mail size={15} aria-hidden /> Compose</Button>
         </PermissionGate>
       </div>
 
@@ -116,7 +117,7 @@ function InboxTab({ onCompose }: { onCompose: (c: ComposeState) => void }) {
                   </span>
                   <span className="email-subject" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.subject || '(no subject)'}</span>
                   {m.snippet && <span className="small muted" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.snippet}</span>}
-                  {m.hasAttachments && <span className="small">📎 attachment</span>}
+                  {m.hasAttachments && <span className="small" style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}><Paperclip size={12} aria-hidden /> attachment</span>}
                 </button>
               );
             })}
@@ -142,7 +143,7 @@ function InboxTab({ onCompose }: { onCompose: (c: ComposeState) => void }) {
               <dt>Date</dt><dd>{fmtDate(message.data.date)}</dd>
             </dl>
             {message.data.attachments && message.data.attachments.length > 0 && (
-              <p className="small">📎 {message.data.attachments.map((a) => `${a.filename}${a.size ? ` (${Math.round(a.size / 1024)} KB)` : ''}`).join(', ')}</p>
+              <p className="small" style={{ display: 'flex', gap: 5, alignItems: 'center' }}><Paperclip size={13} aria-hidden /> {message.data.attachments.map((a) => `${a.filename}${a.size ? ` (${Math.round(a.size / 1024)} KB)` : ''}`).join(', ')}</p>
             )}
             <hr className="divider" />
             {message.data.html
