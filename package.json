@@ -2,6 +2,7 @@
   "name": "atheleos-admin",
   "version": "1.0.0",
   "private": true,
+  "main": "server.js",
   "description": "Atheleos Admin Panel — administration and moderation console for the Atheleos platform (Flutter + Firebase app).",
   "workspaces": [
     "packages/shared",
