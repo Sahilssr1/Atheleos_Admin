@@ -2,11 +2,6 @@
   RewriteEngine On
   RewriteBase /
 
-  # Proxy /api requests to local Node API server on port 4000 if mod_proxy is active
-  <IfModule mod_proxy.c>
-    RewriteRule ^api/(.*)$ http://127.0.0.1:4000/api/$1 [P,L]
-    RewriteRule ^system/(.*)$ http://127.0.0.1:4000/system/$1 [P,L]
-  </IfModule>
 
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
