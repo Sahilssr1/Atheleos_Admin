@@ -3,7 +3,8 @@
     "target": "ES2022", "module": "ESNext", "moduleResolution": "bundler",
     "outDir": "dist", "rootDir": ".", "strict": true, "skipLibCheck": true,
     "esModuleInterop": true, "forceConsistentCasingInFileNames": true,
-    "types": ["node", "vitest/globals"]
+    "types": ["node"]
   },
-  "include": ["src", "scripts", "tests"]
+  "include": ["src", "scripts"],
+  "exclude": ["tests", "node_modules", "dist"]
 }
