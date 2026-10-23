@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@atheleos/shared": "*",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "lucide-react": "^1.61.0",
     "react": "^18.3.1",
@@ -24,8 +26,6 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.1",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
     "jsdom": "^25.0.1",
     "vitest": "^2.1.5"
   }
