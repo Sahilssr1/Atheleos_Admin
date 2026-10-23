@@ -22,6 +22,14 @@ export interface Store {
   deleteDoc(path: string): Promise<void>;
   ping(): Promise<boolean>;
 }
+export function cleanPrivateKey(rawKey?: string): string {
+  if (!rawKey) return '';
+  let key = rawKey.trim();
+  if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+    key = key.slice(1, -1);
+  }
+  return key.replace(/\\n/g, '\n').replace(/\\r/g, '');
+}
 
 export async function countViaList(store: Store, collectionPath: string, opts?: ListOptions): Promise<number> {
   const docs = await store.listDocs(collectionPath, { ...opts, limit: opts?.limit ?? 100000, offset: 0 });
@@ -185,7 +193,7 @@ export class FirestoreStore implements Store {
             opts.credential = admin.credential.cert({
               projectId: this.cfg.FIREBASE_PROJECT_ID,
               clientEmail: this.cfg.FIREBASE_CLIENT_EMAIL,
-              privateKey: this.cfg.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+              privateKey: cleanPrivateKey(this.cfg.FIREBASE_PRIVATE_KEY),
             });
           } else if (this.cfg.GOOGLE_APPLICATION_CREDENTIALS) {
             opts.credential = admin.credential.applicationDefault();
@@ -253,7 +261,9 @@ export class FirestoreStore implements Store {
     await db.doc(path).delete();
   }
   async ping(): Promise<boolean> {
-    try { const db = await this.db(); await db.collection('admin_config').limit(1).get(); return true; } catch { return false; }
+    const db = await this.db();
+    await db.collection('admin_users').limit(1).get();
+    return true;
   }
 }
 

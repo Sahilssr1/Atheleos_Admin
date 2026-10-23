@@ -78,7 +78,20 @@ export function createApp(storeOverride?: Store, cfgOverride?: AppConfig) {
   app.use('/api/admin', api);
 
   // Public health at the contract path (also available un-prefixed for load balancers).
-  app.get('/system/health/public', (_req, res) => res.json({ ok: true }));
+  app.get('/system/health/public', async (_req, res) => {
+    let pingResult: unknown = 'pending';
+    try {
+      pingResult = await store.ping();
+    } catch (e: unknown) {
+      pingResult = { error: e instanceof Error ? e.message : String(e) };
+    }
+    res.json({
+      ok: true,
+      store: store.kind,
+      ping: pingResult,
+      time: new Date().toISOString(),
+    });
+  });
 
   // Static web panel serving (when apps/web/dist exists, e.g. in unified production deployment)
   const candidateDistDirs = [

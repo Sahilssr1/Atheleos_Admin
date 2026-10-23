@@ -141,5 +141,12 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     return res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid JSON body' } });
   }
   console.error('Unhandled error', err);
-  return res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } });
+  const message = err instanceof Error ? err.message : String(err);
+  return res.status(500).json({
+    error: {
+      code: 'INTERNAL_ERROR',
+      message: message || 'Internal server error',
+      details: err instanceof Error ? { name: err.name, stack: err.stack } : undefined,
+    },
+  });
 }

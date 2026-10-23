@@ -1,4 +1,5 @@
 import type { AppConfig } from '../config/env.js';
+import { cleanPrivateKey } from './store.js';
 
 // Firebase Auth user management — active only in firestore mode with credentials.
 // In memory mode (and when Firebase is unconfigured) these are safe no-ops so
@@ -17,7 +18,7 @@ export class FirebaseAuthService {
           opts.credential = admin.credential.cert({
             projectId: this.cfg.FIREBASE_PROJECT_ID,
             clientEmail: this.cfg.FIREBASE_CLIENT_EMAIL,
-            privateKey: this.cfg.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+            privateKey: cleanPrivateKey(this.cfg.FIREBASE_PRIVATE_KEY),
           });
         } else if (this.cfg.GOOGLE_APPLICATION_CREDENTIALS) {
           opts.credential = admin.credential.applicationDefault();
