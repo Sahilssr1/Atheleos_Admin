@@ -9,7 +9,8 @@ export class FirebaseAuthService {
   private async auth() {
     if (this.cfg.DATA_MODE !== 'firestore' || !this.cfg.firebaseConfigured) return null;
     try {
-      const admin = await import('firebase-admin');
+      const fbAdminMod = await import('firebase-admin');
+      const admin = (fbAdminMod as any).default ?? fbAdminMod;
       if (!admin.apps.length) {
         const opts: Record<string, unknown> = { projectId: this.cfg.FIREBASE_PROJECT_ID };
         if (this.cfg.FIREBASE_SERVICE_ACCOUNT_JSON) {
