@@ -1,10 +1,8 @@
 // Atheleos Admin — Server entry point for Hostinger Web App / Node.js
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { execSync } from 'node:child_process';
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const apiEntry = path.join(__dirname, 'apps/api/dist/src/index.js');
 
 console.log('[Server] Starting Atheleos Admin...');
@@ -24,6 +22,7 @@ if (!fs.existsSync(apiEntry)) {
   }
 }
 
+// In Node.js, dynamic import loads ES modules cleanly from CommonJS
 import('./apps/api/dist/src/index.js').catch((err) => {
   console.error('[Server] Failed to load Atheleos Admin API:', err);
   process.exit(1);
