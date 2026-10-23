@@ -1,3 +1,6 @@
+import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -19,13 +22,31 @@ import { analyticsRouter } from './routes/analytics.js';
 import { dashboardRouter, searchRouter } from './routes/dashboard.js';
 import { adminsRouter, auditRouter, rolesRouter, securityRouter, settingsRouter, systemRouter } from './routes/admin.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export function createApp(storeOverride?: Store, cfgOverride?: AppConfig) {
   const cfg = cfgOverride ?? getEnv();
   const store = storeOverride ?? createStore(cfg);
   const fbAuth = new FirebaseAuthService(cfg);
   const app = express();
   app.set('trust proxy', 1);
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+          fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+          imgSrc: ["'self'", 'data:', 'blob:', 'https:', 'http:'],
+          connectSrc: ["'self'", 'https:', 'http:'],
+          mediaSrc: ["'self'", 'https:', 'http:', 'blob:'],
+        },
+      },
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
   app.use(cors({ origin: cfg.WEB_ORIGIN, credentials: true }));
   app.use(cookieParser());
   app.use(express.json({ limit: '2mb' }));
@@ -58,6 +79,27 @@ export function createApp(storeOverride?: Store, cfgOverride?: AppConfig) {
 
   // Public health at the contract path (also available un-prefixed for load balancers).
   app.get('/system/health/public', (_req, res) => res.json({ ok: true }));
+
+  // Static web panel serving (when apps/web/dist exists, e.g. in unified production deployment)
+  const candidateDistDirs = [
+    path.resolve(__dirname, '../../../apps/web/dist'),
+    path.resolve(__dirname, '../../web/dist'),
+    path.resolve(process.cwd(), 'apps/web/dist'),
+    path.resolve(process.cwd(), '../web/dist'),
+    path.resolve(process.cwd(), 'dist'),
+  ];
+  const webDist = candidateDistDirs.find((dir) => fs.existsSync(dir));
+
+  if (webDist) {
+    app.use(express.static(webDist));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/system')) {
+        return next();
+      }
+      res.sendFile(path.join(webDist, 'index.html'));
+    });
+  }
+
   app.use((_req, res) => res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' } }));
   app.use(errorHandler);
   return app;

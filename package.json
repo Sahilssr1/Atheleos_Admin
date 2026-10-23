@@ -12,7 +12,8 @@
     "dev": "concurrently -k -p \"[{name}]\" -n \"api,web\" -c \"blue,cyan\" \"npm run dev:api\" \"npm run dev:web\"",
     "dev:api": "npm run dev -w @atheleos/api",
     "dev:web": "npm run dev -w @atheleos/web",
-    "build": "npm run build -w @atheleos/shared && npm run build -w @atheleos/api && npm run build -w @atheleos/web",
+    "build": "npm run build -w @atheleos/shared && npm run build -w @atheleos/api && npm run build -w @atheleos/web && node -e \"const fs = require('fs'); fs.cpSync('apps/web/dist', 'dist', { recursive: true });\"",
+    "start": "npm run start -w @atheleos/api",
     "typecheck": "npm run typecheck -w @atheleos/shared && npm run typecheck -w @atheleos/api && npm run typecheck -w @atheleos/web",
     "test": "npm run test -w @atheleos/api && npm run test -w @atheleos/web",
     "bootstrap-admin": "npm run bootstrap-admin -w @atheleos/api"
@@ -21,6 +22,6 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "concurrently": "^10.0.6"
+    "concurrently": "^9.1.2"
   }
 }
