@@ -34,6 +34,9 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   const text = await res.text();
   let json: unknown = null;
   try { json = text ? JSON.parse(text) : null; } catch { /* non-JSON body */ }
+  if (json === null && text && text.trim().startsWith('<')) {
+    throw new ApiError(502, 'API_NOT_RUNNING', 'Cannot reach the Admin API. The backend server is not running or not forwarding /api requests.');
+  }
   if (!res.ok) {
     const err = (json as { error?: { code?: string; message?: string } } | null)?.error;
     const apiErr = new ApiError(res.status, err?.code ?? 'HTTP_ERROR', err?.message ?? `Request failed (${res.status})`);
