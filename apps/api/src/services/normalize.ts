@@ -37,6 +37,12 @@ export function rawEmail(d: Record<string, unknown>): string | null {
   return v ? String(v) : null;
 }
 
+function isVideoMedia(mType?: unknown, url?: unknown): boolean {
+  const typeStr = str(mType).toLowerCase();
+  const urlStr = str(url).toLowerCase();
+  return typeStr === 'video' || typeStr.startsWith('video') || /\.(mp4|webm|mov|m4v|ogg)(\?.*)?$/i.test(urlStr);
+}
+
 export function normalizeContent(doc: DocResult, forcedType?: ContentType): ContentItem {
   const d = doc.data;
   let type: ContentType = forcedType ?? (str(d.type, 'post') === 'clip' ? 'clip' : 'post');
@@ -45,12 +51,31 @@ export function normalizeContent(doc: DocResult, forcedType?: ContentType): Cont
   const media: ContentItem['media'] = [];
   if (Array.isArray(d.media)) {
     for (const m of d.media as Record<string, unknown>[]) {
-      if (m && typeof m === 'object') media.push({ url: str(pick(m, ['url', 'mediaUrl'])), type: str(pick(m, ['type', 'mediaType'], 'image'), 'image'), thumbnailUrl: str(pick(m, ['thumbnailUrl'])) || undefined });
-      else if (typeof m === 'string') media.push({ url: m, type: 'image' });
+      if (m && typeof m === 'object') {
+        const u = str(pick(m, ['url', 'mediaUrl', 'videoUrl', 'imageUrl']));
+        const mType = str(pick(m, ['type', 'mediaType']));
+        const isVid = isVideoMedia(mType, u) || Boolean(m.videoUrl);
+        media.push({
+          url: u,
+          type: isVid ? 'video' : 'image',
+          thumbnailUrl: str(pick(m, ['thumbnailUrl', 'posterUrl', 'coverUrl'])) || undefined,
+        });
+      } else if (typeof m === 'string') {
+        media.push({ url: m, type: isVideoMedia('', m) ? 'video' : 'image' });
+      }
     }
   }
-  const single = pick(d, ['mediaUrl', 'imageUrl', 'videoUrl', 'coverUrl', 'bannerUrl'], null);
-  if (!media.length && single) media.push({ url: String(single), type: d.videoUrl ? 'video' : 'image', thumbnailUrl: str(pick(d, ['thumbnailUrl'])) || undefined });
+  const single = pick(d, ['mediaUrl', 'videoUrl', 'imageUrl', 'coverUrl', 'bannerUrl', 'fileUrl', 'url'], null);
+  if (!media.length && single) {
+    const singleUrl = String(single);
+    const mType = str(pick(d, ['mediaType', 'type']));
+    const isVid = Boolean(d.videoUrl) || isVideoMedia(mType, singleUrl);
+    media.push({
+      url: singleUrl,
+      type: isVid ? 'video' : 'image',
+      thumbnailUrl: str(pick(d, ['thumbnailUrl', 'posterUrl', 'coverUrl'])) || undefined,
+    });
+  }
   const statusRaw = str(pick(d, ['moderationStatus'], d.deleted ? 'removed' : 'visible'), 'visible');
   const createdAt = isoOrNull(pick(d, ['createdAt', 'timestamp'], null) as string | null);
   let expiresAt: string | null | undefined;

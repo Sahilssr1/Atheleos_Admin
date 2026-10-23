@@ -15,6 +15,7 @@ export type ContentAction = 'hide' | 'restore' | 'remove';
 
 export function MediaThumb({ item, height }: { item: ContentItem; height?: number }) {
   const m = item.media[0];
+  const [imgError, setImgError] = useState(false);
   if (!m) {
     return (
       <div className="media-thumb" style={height ? { aspectRatio: 'auto', height } : undefined}>
@@ -22,12 +23,30 @@ export function MediaThumb({ item, height }: { item: ContentItem; height?: numbe
       </div>
     );
   }
-  const isVideo = m.type.startsWith('video') || item.type === 'clip';
+  const isVideo = m.type.startsWith('video') || item.type === 'clip' || /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(m.url);
+  const videoSrc = m.url && !m.url.includes('#') ? `${m.url}#t=0.001` : m.url;
   return (
     <div className="media-thumb" style={height ? { aspectRatio: 'auto', height } : undefined}>
-      {isVideo
-        ? <video src={m.url} poster={m.thumbnailUrl} preload="metadata" muted playsInline />
-        : <img src={m.thumbnailUrl ?? m.url} alt="" loading="lazy" />}
+      {isVideo ? (
+        <video
+          src={videoSrc}
+          poster={m.thumbnailUrl}
+          preload="metadata"
+          muted
+          playsInline
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      ) : !imgError ? (
+        <img
+          src={m.thumbnailUrl ?? m.url}
+          alt=""
+          loading="lazy"
+          onError={() => setImgError(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      ) : (
+        <span className="faint" style={{ display: 'inline-flex' }}><FileText size={32} /></span>
+      )}
       {isVideo && <span className="badge" style={{ position: 'absolute', bottom: 8, right: 8 }}>▶ video</span>}
     </div>
   );
@@ -193,13 +212,16 @@ export function ContentBrowser({ types, heading, subheading }: {
           <div className="grid cols-2">
             <div>
               {detail.media.length > 0
-                ? detail.media.map((m, i) => (
-                  <div key={i} style={{ marginBottom: 8 }}>
-                    {m.type.startsWith('video') || detail.type === 'clip'
-                      ? <video src={m.url} poster={m.thumbnailUrl} controls style={{ width: '100%', borderRadius: 8 }} />
-                      : <img src={m.url} alt="" style={{ width: '100%', borderRadius: 8 }} />}
-                  </div>
-                ))
+                ? detail.media.map((m, i) => {
+                  const isVid = m.type.startsWith('video') || detail.type === 'clip' || /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(m.url);
+                  return (
+                    <div key={i} style={{ marginBottom: 8 }}>
+                      {isVid
+                        ? <video src={m.url} poster={m.thumbnailUrl} controls preload="metadata" style={{ width: '100%', borderRadius: 8, maxHeight: 420, background: '#000' }} />
+                        : <img src={m.url} alt="" style={{ width: '100%', borderRadius: 8 }} />}
+                    </div>
+                  );
+                })
                 : <MediaThumb item={detail} height={220} />}
             </div>
             <div>

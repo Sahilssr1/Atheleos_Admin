@@ -29,9 +29,11 @@ export function StatusBadge({ status }: { status: string }) {
   return <Badge tone={statusTone(status)}>{status.replace(/_/g, ' ')}</Badge>;
 }
 
-// ── Avatar ───────────────────────────────────────────────────
 export function Avatar({ src, name, size = 36 }: { src?: string; name: string; size?: number }) {
-  if (src) return <img className="avatar" src={src} alt="" width={size} height={size} loading="lazy" />;
+  const [failed, setFailed] = useState(false);
+  if (src && !failed) {
+    return <img className="avatar" src={src} alt="" width={size} height={size} loading="lazy" onError={() => setFailed(true)} />;
+  }
   return <span className="avatar-fallback" style={{ width: size, height: size, fontSize: size * 0.38 }} aria-hidden>{initials(name)}</span>;
 }
 

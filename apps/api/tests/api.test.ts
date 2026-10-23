@@ -139,10 +139,19 @@ describe('Atheleos Admin API (memory mode)', () => {
   });
 
   it('content: hide → restore a post', async () => {
-    const hide = await request(app).post('/api/admin/content/post/p1/hide').set('Cookie', modCookie).send({ reason: 'policy' });
+    const hide = await request(app).post('/api/admin/content/post/p1/hide').set('Cookie', modCookie).send({ reason: 'policy violation' });
     expect(hide.status).toBe(200);
     let doc = await store.getDoc('posts/p1');
     expect(doc?.data.moderationStatus).toBe('hidden');
+
+    // Author gets in-app notification with the reason
+    const notifs = await store.listDocs('users/u1/notifications', { limit: 100 });
+    expect(notifs.some((n) => n.data.title === 'Post Hidden' && String(n.data.body).includes('policy violation'))).toBe(true);
+
+    // Record is saved in moderation_actions
+    const modActions = await store.listDocs('moderation_actions', { limit: 100 });
+    expect(modActions.some((a) => a.data.userId === 'u1' && a.data.action === 'content.hide' && a.data.reason === 'policy violation')).toBe(true);
+
     const restore = await request(app).post('/api/admin/content/post/p1/restore').set('Cookie', modCookie).send({ reason: 'reinstated' });
     expect(restore.status).toBe(200);
     doc = await store.getDoc('posts/p1');
@@ -157,6 +166,10 @@ describe('Atheleos Admin API (memory mode)', () => {
     expect(hide.status).toBe(200);
     const doc = await store.getDoc('posts/p1/comments/c1');
     expect(doc?.data.moderationStatus).toBe('hidden');
+
+    // Author of comment (u2) gets notification with reason
+    const notifs = await store.listDocs('users/u2/notifications', { limit: 100 });
+    expect(notifs.some((n) => n.data.title === 'Comment Hidden' && String(n.data.body).includes('abuse'))).toBe(true);
   });
 
   it('verifications: decide approves and sets user fields + notification', async () => {

@@ -6,7 +6,7 @@ import { AppError, forbidden } from '../utils/errors.js';
 import { nowIso, paginate, pagination, str } from '../utils/helpers.js';
 import { requireAuth, requirePermission, writeAudit } from '../middleware/auth.js';
 import { normalizeUser, normalizeContent, normalizeReport, normalizeVerification } from '../services/normalize.js';
-import { reinstateUser, restrictUser, suspendUser, warnUser } from '../services/userService.js';
+import { notifyUser, reinstateUser, restrictUser, suspendUser, warnUser } from '../services/userService.js';
 import type { FirebaseAuthService } from '../db/firebaseAuth.js';
 
 const reasonBody = z.object({ reason: z.string().min(1), expiresAt: z.string().nullable().optional() });
@@ -68,11 +68,38 @@ export function usersRouter(store: Store, cfg: AppConfig, fbAuth: FirebaseAuthSe
       const reports = reportsAll.filter((x) => str(x.data.targetId) === req.params.id || str(x.data.uid) === req.params.id || str(x.data.reporterId) === req.params.id).map(normalizeReport);
       const support = reportsAll.filter((x) => str(x.data.uid) === req.params.id).map(normalizeReport);
       const audits = await store.listDocs('admin_audit_logs', { limit: 100000 });
-      const restrictions = audits.filter((a) => a.data.resourceId === req.params.id).map((a) => ({
-        id: a.id, adminId: str(a.data.adminId), action: str(a.data.action), reason: str(a.data.reason), createdAt: str(a.data.createdAt),
+      const userAudits = audits.filter((a) => a.data.resourceId === req.params.id || a.data.targetUserId === req.params.id).map((a) => ({
+        id: a.id,
+        adminId: str(a.data.adminId),
+        adminEmail: str(a.data.adminEmail || a.data.adminId),
+        action: str(a.data.action),
+        resourceType: str(a.data.resourceType, 'user'),
+        resourceId: str(a.data.resourceId, req.params.id),
+        reason: str(a.data.reason),
+        outcome: (str(a.data.outcome, 'success') as 'success' | 'failure'),
+        correlationId: str(a.data.correlationId),
+        createdAt: str(a.data.createdAt),
       }));
       const actions = await store.listDocs('moderation_actions', { where: [{ field: 'userId', op: '==', value: req.params.id }], limit: 1000 }).catch(() => []);
-      res.json({ data: { user, content: [...content, ...storyItems], reports, restrictions: [...restrictions, ...actions.map((a) => ({ id: a.id, ...a.data }))], support } });
+      const moderationRecords = actions.map((a) => ({
+        id: a.id,
+        adminId: str(a.data.by || a.data.adminId),
+        adminEmail: str(a.data.adminEmail || a.data.by || 'admin'),
+        action: str(a.data.action),
+        resourceType: str(a.data.targetType || 'user'),
+        resourceId: str(a.data.targetId || req.params.id),
+        reason: str(a.data.reason || a.data.message),
+        outcome: 'success' as const,
+        correlationId: '',
+        createdAt: str(a.data.createdAt),
+      }));
+      const mergedMap = new Map<string, typeof userAudits[0]>();
+      for (const item of [...userAudits, ...moderationRecords]) {
+        const key = `${item.action}-${item.createdAt}-${item.resourceId}`;
+        if (!mergedMap.has(key)) mergedMap.set(key, item);
+      }
+      const combinedRestrictions = Array.from(mergedMap.values()).sort((a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? '')));
+      res.json({ data: { user, content: [...content, ...storyItems], reports, restrictions: combinedRestrictions, support } });
     } catch (e) { next(e); }
   });
 
@@ -122,6 +149,12 @@ export function usersRouter(store: Store, cfg: AppConfig, fbAuth: FirebaseAuthSe
         accountStatusAt: nowIso(), accountStatusBy: req.admin!.id, updatedAt: nowIso(),
       });
       await fbAuth.disableUser(req.params.id);
+      await notifyUser(store, req.params.id, 'Account Deactivated', `Your account has been deactivated: ${body.reason}`, {
+        kind: 'account_deleted', reason: body.reason, by: req.admin!.id,
+      });
+      await store.addDoc('moderation_actions', {
+        userId: req.params.id, action: 'users.delete', targetType: 'user', targetId: req.params.id, reason: body.reason, by: req.admin!.id, createdAt: nowIso(),
+      }).catch(() => undefined);
       await writeAudit(store, req, 'users.delete', 'user', req.params.id, body.reason);
       res.json({ data: { ok: true } });
     } catch (e) { next(e); }

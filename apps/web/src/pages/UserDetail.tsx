@@ -124,10 +124,11 @@ export default function UserDetail() {
             {data.content.map((c) => (
               <div key={`${c.type}-${c.id}`} className="media-card">
                 <div className="media-thumb">
-                  {c.media[0] ? (c.media[0].type.startsWith('video')
-                    ? <video src={c.media[0].url} preload="metadata" muted />
-                    : <img src={c.media[0].thumbnailUrl ?? c.media[0].url} alt="" loading="lazy" />)
-                    : <span className="faint" style={{ display: 'inline-flex' }}>{c.type === 'event' ? <CalendarDays size={28} /> : <FileText size={28} />}</span>}
+                  {c.media[0] ? (
+                    (c.media[0].type.startsWith('video') || c.type === 'clip' || /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(c.media[0].url))
+                      ? <video src={c.media[0].url.includes('#') ? c.media[0].url : `${c.media[0].url}#t=0.001`} poster={c.media[0].thumbnailUrl} preload="metadata" muted playsInline />
+                      : <img src={c.media[0].thumbnailUrl ?? c.media[0].url} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  ) : <span className="faint" style={{ display: 'inline-flex' }}>{c.type === 'event' ? <CalendarDays size={28} /> : <FileText size={28} />}</span>}
                   <span className="media-status"><StatusBadge status={c.status} /></span>
                 </div>
                 <div className="media-body">
@@ -156,10 +157,16 @@ export default function UserDetail() {
       {tab === 'restrictions' && (
         (!data.restrictions || data.restrictions.length === 0) ? <EmptyState icon="📜" title="No recorded actions" hint="Suspensions, restrictions, warnings and other admin actions on this account will appear here." /> : (
           <Card flush><div className="table-wrap"><table className="table">
-            <thead><tr><th>Action</th><th>By</th><th>Reason</th><th>Outcome</th><th>When</th></tr></thead>
+            <thead><tr><th>Action</th><th>Target</th><th>By</th><th>Reason</th><th>Outcome</th><th>When</th></tr></thead>
             <tbody>{data.restrictions.map((a) => (
-              <tr key={a.id}><td className="mono">{a.action}</td><td>{a.adminEmail}</td><td>{a.reason || '—'}</td>
-                <td><Badge tone={a.outcome === 'success' ? 'ok' : 'danger'}>{a.outcome}</Badge></td><td>{fmtDate(a.createdAt)}</td></tr>
+              <tr key={a.id}>
+                <td className="mono">{a.action}</td>
+                <td><span className="small faint">{a.resourceType ? `${a.resourceType}${a.resourceId && a.resourceId !== user.id ? `/${a.resourceId}` : ''}` : 'account'}</span></td>
+                <td>{a.adminEmail || a.adminId || '—'}</td>
+                <td>{a.reason || '—'}</td>
+                <td><Badge tone={a.outcome === 'success' ? 'ok' : 'danger'}>{a.outcome || 'success'}</Badge></td>
+                <td>{fmtDate(a.createdAt)}</td>
+              </tr>
             ))}</tbody>
           </table></div></Card>
         )
